@@ -47,11 +47,12 @@
 请将示例中的 Qt 路径替换为**本机实际安装路径**（指向包含 `lib/cmake/Qt6` 的套件根目录，例如 `…/6.x.x/mingw_64`）：
 
 ```powershell
-git clone https://github.com/OWNER/QuickAccount.git
+git clone git@github.com:OWNER/QuickAccount.git
 cd QuickAccount
 ```
 
-将 `OWNER` 替换为 GitHub 用户名或组织名（使用官方仓库时填作者账号；使用 fork 时填自己的账号）。
+将 `OWNER` 替换为 GitHub 用户名或组织名（使用官方仓库时填作者账号；使用 fork 时填自己的账号）。  
+若尚未配置 SSH 公钥，请参阅 GitHub 文档：[Connecting to GitHub with SSH](https://docs.github.com/en/authentication/connecting-to-github-with-ssh)。仍可使用 HTTPS：`git clone https://github.com/OWNER/QuickAccount.git`。
 
 ```powershell
 # 将 Ninja、CMake、MinGW 加入 PATH（路径按本机 Qt 安装位置修改）

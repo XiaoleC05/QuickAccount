@@ -1,0 +1,39 @@
+# CMake / Ninja
+build/
+build-*/
+cmake-build-*/
+out/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+_deps/
+.ninja_deps
+.ninja_log
+*.ninja
+compile_commands.json
+
+# Qt Creator / VS / IDE
+*.pro.user
+*.pro.user.*
+CMakeLists.txt.user*
+.qtcreator/*.user
+.qtc_clangd/
+.idea/
+.vscode/
+*.autosave
+
+# 编译产物（若曾放在源码树内）
+*.o
+*.obj
+*.a
+*.lib
+*.dll
+*.exe
+*.pdb
+*.ilk
+
+# 系统
+.DS_Store
+Thumbs.db
+*~

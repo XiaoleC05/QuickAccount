@@ -13,7 +13,7 @@ class TransactionService : public QObject {
 public:
     explicit TransactionService(QObject *parent = nullptr);
 
-    Q_INVOKABLE void addTransaction(
+    Q_INVOKABLE bool addTransaction(
         const QString &type,
         double amount,
         const QString &category,

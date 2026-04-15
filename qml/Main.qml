@@ -1,15 +1,29 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Window
 
 ApplicationWindow {
     id: root
-    width: 980
-    height: 640
+    width: Qt.platform.os === "android" ? Screen.width : 980
+    height: Qt.platform.os === "android" ? Screen.height : 640
     visible: true
     title: qsTr("快账 QuickAccount")
+    color: "#F5F7FB"
+
+    palette.window: "#F5F7FB"
+    palette.base: "white"
+    palette.button: "white"
+    palette.highlight: "#2D7DFA"
+    palette.buttonText: "#1D2433"
+    palette.windowText: "#1D2433"
+    palette.text: "#1D2433"
 
     header: ToolBar {
+        background: Rectangle {
+            color: "white"
+            border.color: "#E6EAF2"
+        }
         RowLayout {
             anchors.fill: parent
             spacing: 12
@@ -19,12 +33,18 @@ ApplicationWindow {
                 font.bold: true
                 Layout.leftMargin: 12
             }
+            Label {
+                text: qsTr("本地离线记账")
+                opacity: 0.6
+                font.pixelSize: 12
+            }
             Item { Layout.fillWidth: true }
         }
     }
 
     footer: TabBar {
         id: tabs
+        spacing: 4
         TabButton {
             text: qsTr("首页")
         }

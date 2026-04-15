@@ -14,6 +14,25 @@ bool isValidType(const QString &type)
 {
     return type == QStringLiteral("income") || type == QStringLiteral("expense");
 }
+
+bool isValidIsoDate(const QString &date)
+{
+    return date.size() == 10 && QDate::fromString(date, QStringLiteral("yyyy-MM-dd")).isValid();
+}
+
+bool isAllowedOption(const QString &value, const QStringList &allowed)
+{
+    return !value.isEmpty() && allowed.contains(value);
+}
+
+QString normalizedOptionalDate(const QString &raw)
+{
+    const QString value = raw.trimmed();
+    if (value.isEmpty()) {
+        return QString();
+    }
+    return isValidIsoDate(value) ? value : QString();
+}
 }
 
 TransactionService::TransactionService(QObject *parent)
@@ -39,7 +58,7 @@ bool TransactionService::ensureDao()
     return true;
 }
 
-void TransactionService::addTransaction(
+bool TransactionService::addTransaction(
     const QString &type,
     const double amount,
     const QString &category,
@@ -50,28 +69,28 @@ void TransactionService::addTransaction(
     // REVIEW: 安全校验（类型/金额/枚举类字段白名单）
     if (!isValidType(type)) {
         qWarning("TransactionService::addTransaction: invalid type");
-        return;
+        return false;
     }
     if (!(amount > 0.0) || amount > 1e12) {
         qWarning("TransactionService::addTransaction: invalid amount");
-        return;
+        return false;
     }
     const QString cat = category.trimmed();
     const QString pay = paymentMethod.trimmed();
     if (cat.isEmpty() || pay.isEmpty()) {
         qWarning("TransactionService::addTransaction: empty category or payment");
-        return;
+        return false;
     }
     const QStringList allowedCat = categoryOptions();
     const QStringList allowedPay = paymentMethodOptions();
-    if (!allowedCat.contains(cat) || !allowedPay.contains(pay)) {
+    if (!isAllowedOption(cat, allowedCat) || !isAllowedOption(pay, allowedPay)) {
         qWarning("TransactionService::addTransaction: category/payment not in allowed list");
-        return;
+        return false;
     }
     const QString d = date.trimmed();
-    if (d.size() != 10 || !QDate::fromString(d, QStringLiteral("yyyy-MM-dd")).isValid()) {
+    if (!isValidIsoDate(d)) {
         qWarning("TransactionService::addTransaction: invalid date");
-        return;
+        return false;
     }
 
     Transaction t;
@@ -83,11 +102,13 @@ void TransactionService::addTransaction(
     t.m_paymentMethod = pay;
 
     if (!ensureDao()) {
-        return;
+        return false;
     }
     if (m_dao->addTransaction(t)) {
         emit dataChanged();
+        return true;
     }
+    return false;
 }
 
 QVariantList TransactionService::getTransactions()
@@ -142,11 +163,11 @@ bool TransactionService::updateTransaction(
     }
     const QStringList allowedCat = categoryOptions();
     const QStringList allowedPay = paymentMethodOptions();
-    if (!allowedCat.contains(cat) || !allowedPay.contains(pay)) {
+    if (!isAllowedOption(cat, allowedCat) || !isAllowedOption(pay, allowedPay)) {
         return false;
     }
     const QString d = date.trimmed();
-    if (d.size() != 10 || !QDate::fromString(d, QStringLiteral("yyyy-MM-dd")).isValid()) {
+    if (!isValidIsoDate(d)) {
         return false;
     }
     if (!ensureDao()) {
@@ -197,8 +218,10 @@ QVariantList TransactionService::searchTransactions(
     const QString pay = paymentMethod.trimmed();
     const QStringList allowedCat = categoryOptions();
     const QStringList allowedPay = paymentMethodOptions();
-    const QString categoryArg = (!cat.isEmpty() && allowedCat.contains(cat)) ? cat : QString();
-    const QString paymentArg = (!pay.isEmpty() && allowedPay.contains(pay)) ? pay : QString();
+    const QString categoryArg = isAllowedOption(cat, allowedCat) ? cat : QString();
+    const QString paymentArg = isAllowedOption(pay, allowedPay) ? pay : QString();
+    const QString startDateArg = normalizedOptionalDate(startDate);
+    const QString endDateArg = normalizedOptionalDate(endDate);
 
     if (!ensureDao()) {
         return {};
@@ -208,8 +231,8 @@ QVariantList TransactionService::searchTransactions(
         keyword,
         categoryArg,
         paymentArg,
-        startDate.trimmed(),
-        endDate.trimmed(),
+        startDateArg,
+        endDateArg,
         minF,
         maxF);
     for (const Transaction &t : rows) {

@@ -1,5 +1,6 @@
 #include <QCoreApplication>
 #include <QGuiApplication>
+#include <QIcon>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQuickStyle>
@@ -20,6 +21,7 @@ int main(int argc, char *argv[])
     QGuiApplication app(argc, argv);
     QCoreApplication::setApplicationName(QStringLiteral("QuickAccount"));
     QCoreApplication::setOrganizationName(QStringLiteral("QuickAccount"));
+    app.setWindowIcon(QIcon(QStringLiteral(":/assets/icons/app_icon.xpm")));
 
     const QString appDir = QCoreApplication::applicationDirPath();
     QCoreApplication::addLibraryPath(appDir);

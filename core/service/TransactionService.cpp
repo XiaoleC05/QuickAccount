@@ -25,6 +25,42 @@ bool isAllowedOption(const QString &value, const QStringList &allowed)
     return !value.isEmpty() && allowed.contains(value);
 }
 
+bool fillValidatedTransaction(
+    Transaction &out,
+    const QString &type,
+    const double amount,
+    const QString &category,
+    const QString &date,
+    const QString &description,
+    const QString &paymentMethod,
+    const QStringList &allowedCat,
+    const QStringList &allowedPay)
+{
+    if (!isValidType(type)) {
+        return false;
+    }
+    if (!(amount > 0.0) || amount > 1e12) {
+        return false;
+    }
+    const QString cat = category.trimmed();
+    const QString pay = paymentMethod.trimmed();
+    if (!isAllowedOption(cat, allowedCat) || !isAllowedOption(pay, allowedPay)) {
+        return false;
+    }
+    const QString d = date.trimmed();
+    if (!isValidIsoDate(d)) {
+        return false;
+    }
+
+    out.m_type = type;
+    out.m_amount = amount;
+    out.m_category = cat;
+    out.m_date = d;
+    out.m_description = description.trimmed();
+    out.m_paymentMethod = pay;
+    return true;
+}
+
 QString normalizedOptionalDate(const QString &raw)
 {
     const QString value = raw.trimmed();
@@ -66,40 +102,23 @@ bool TransactionService::addTransaction(
     const QString &description,
     const QString &paymentMethod)
 {
-    // REVIEW: 安全校验（类型/金额/枚举类字段白名单）
-    if (!isValidType(type)) {
-        qWarning("TransactionService::addTransaction: invalid type");
-        return false;
-    }
-    if (!(amount > 0.0) || amount > 1e12) {
-        qWarning("TransactionService::addTransaction: invalid amount");
-        return false;
-    }
-    const QString cat = category.trimmed();
-    const QString pay = paymentMethod.trimmed();
-    if (cat.isEmpty() || pay.isEmpty()) {
-        qWarning("TransactionService::addTransaction: empty category or payment");
-        return false;
-    }
     const QStringList allowedCat = categoryOptions();
     const QStringList allowedPay = paymentMethodOptions();
-    if (!isAllowedOption(cat, allowedCat) || !isAllowedOption(pay, allowedPay)) {
-        qWarning("TransactionService::addTransaction: category/payment not in allowed list");
-        return false;
-    }
-    const QString d = date.trimmed();
-    if (!isValidIsoDate(d)) {
-        qWarning("TransactionService::addTransaction: invalid date");
-        return false;
-    }
-
     Transaction t;
-    t.m_type = type;
-    t.m_amount = amount;
-    t.m_category = cat;
-    t.m_date = d;
-    t.m_description = description.trimmed();
-    t.m_paymentMethod = pay;
+    // REVIEW: 安全校验（类型/金额/枚举类字段白名单）
+    if (!fillValidatedTransaction(
+            t,
+            type,
+            amount,
+            category,
+            date,
+            description,
+            paymentMethod,
+            allowedCat,
+            allowedPay)) {
+        qWarning("TransactionService::addTransaction: validation failed");
+        return false;
+    }
 
     if (!ensureDao()) {
         return false;
@@ -150,38 +169,25 @@ bool TransactionService::updateTransaction(
     if (id <= 0) {
         return false;
     }
-    if (!isValidType(type)) {
-        return false;
-    }
-    if (!(amount > 0.0) || amount > 1e12) {
-        return false;
-    }
-    const QString cat = category.trimmed();
-    const QString pay = paymentMethod.trimmed();
-    if (cat.isEmpty() || pay.isEmpty()) {
-        return false;
-    }
     const QStringList allowedCat = categoryOptions();
     const QStringList allowedPay = paymentMethodOptions();
-    if (!isAllowedOption(cat, allowedCat) || !isAllowedOption(pay, allowedPay)) {
-        return false;
-    }
-    const QString d = date.trimmed();
-    if (!isValidIsoDate(d)) {
+    Transaction t;
+    if (!fillValidatedTransaction(
+            t,
+            type,
+            amount,
+            category,
+            date,
+            description,
+            paymentMethod,
+            allowedCat,
+            allowedPay)) {
         return false;
     }
     if (!ensureDao()) {
         return false;
     }
-
-    Transaction t;
     t.m_id = id;
-    t.m_type = type;
-    t.m_amount = amount;
-    t.m_category = cat;
-    t.m_date = d;
-    t.m_description = description.trimmed();
-    t.m_paymentMethod = pay;
 
     const bool ok = m_dao->updateTransaction(t);
     if (ok) {

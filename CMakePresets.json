@@ -1,0 +1,44 @@
+{
+  "version": 5,
+  "configurePresets": [
+    {
+      "name": "android-arm64-debug",
+      "displayName": "Android arm64-v8a Debug（命令行）",
+      "description": "交叉编译前请在环境中设置 ANDROID_NDK_ROOT、QT_ANDROID_PATH（指向 Qt 的 android_arm64_v8a 目录）、QT_HOST_PATH（同版本桌面 Qt，如 mingw_64）",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-android-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_TOOLCHAIN_FILE": "$env{ANDROID_NDK_ROOT}/build/cmake/android.toolchain.cmake",
+        "ANDROID_ABI": "arm64-v8a",
+        "ANDROID_PLATFORM": "android-28",
+        "CMAKE_PREFIX_PATH": "$env{QT_ANDROID_PATH}",
+        "QT_HOST_PATH": "$env{QT_HOST_PATH}"
+      }
+    },
+    {
+      "name": "android-arm64-release",
+      "displayName": "Android arm64-v8a Release（命令行）",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-android-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_TOOLCHAIN_FILE": "$env{ANDROID_NDK_ROOT}/build/cmake/android.toolchain.cmake",
+        "ANDROID_ABI": "arm64-v8a",
+        "ANDROID_PLATFORM": "android-28",
+        "CMAKE_PREFIX_PATH": "$env{QT_ANDROID_PATH}",
+        "QT_HOST_PATH": "$env{QT_HOST_PATH}"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "android-arm64-debug",
+      "configurePreset": "android-arm64-debug"
+    },
+    {
+      "name": "android-arm64-release",
+      "configurePreset": "android-arm64-release"
+    }
+  ]
+}
